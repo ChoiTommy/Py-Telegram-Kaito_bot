@@ -1,12 +1,16 @@
 #https://youtu.be/jhFsFZXZbu4
 #https://github.com/eternnoir/pyTelegramBotAPI#message-handlers
 import telebot
+from time import strftime
+import time
 
 bot_token = ''
 
 bot = telebot.TeleBot(token=bot_token)
 
 chat_id = '-352926939'
+
+afk_name = []
 
 @bot.message_handler(commands=['start'])
 def send(message):
@@ -55,11 +59,41 @@ def purge(message):
             except:
                 continue
         bot.delete_message(chat_id, message.message_id)
-        
-@bot.message_handler(commands=['delete'])
+
+@bot.message_handler(commands=['delete', 'del'])
 def delete(message):
     if not message.reply_to_message is None:
         bot.delete_message(chat_id, message.reply_to_message.message_id)
-        bot.delete_message(chat_id, message.message_id) 
+        bot.delete_message(chat_id, message.message_id)
 
-bot.polling()
+@bot.message_handler(commands=['now'])
+def now(message):
+    bot.reply_to(message, strftime("%a, %d %b %Y %I:%M:%S %p %Z\n"))
+
+@bot.message_handler(func=lambda message: 'steal' in message.text.lower() , content_types=['text'])
+def steal(message):
+    bot.reply_to(message, 'Steal practice huh')
+
+@bot.message_handler(func=lambda message: '@' + message.from_user.username in afk_name)
+def remove_afk(message):
+    bot.reply_to(message, 'No longer afk!')
+    afk_name.remove('@' + message.from_user.username)
+
+@bot.message_handler(commands=['afk'])
+def afk(message):
+    afk_name.append('@' + message.from_user.username)
+    bot.reply_to(message, message.from_user.username + ' started steal practising!')
+
+def check_in_list(message):
+    m = [x for x in message.text.split() if '@' in x]
+    return ''.join(m) in afk_name
+
+@bot.message_handler(func=check_in_list)
+def tagging_afk_name(message):
+    bot.reply_to(message, 'He is steal practising!')
+
+while True:
+    try:
+        bot.polling()
+    except Exception:
+        time.sleep(15)
