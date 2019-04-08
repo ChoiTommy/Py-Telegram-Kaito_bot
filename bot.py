@@ -1,6 +1,7 @@
 #https://youtu.be/jhFsFZXZbu4
 #https://github.com/eternnoir/pyTelegramBotAPI#message-handlers
 import telebot
+from telebot import types
 from time import strftime
 import time
 
@@ -10,7 +11,9 @@ bot = telebot.TeleBot(token=bot_token)
 
 chat_id = '-352926939'
 
-afk_name = []
+#afk_name = []
+
+mute_id = []
 
 @bot.message_handler(commands=['start'])
 def send(message):
@@ -19,32 +22,23 @@ def send(message):
 def extract_arg(arg):
     return '+'.join(arg.split()[1:])
 
-def space_to_plus_sign(arg):
+def extract_string(string):
+    return ' '.join(string.split()[1:])
+
+def extract_arg_2(arg):
     return '+'.join(arg.split())
 
 @bot.message_handler(commands=['ph', 'pornhub'])
 def ph(message):
     if message.reply_to_message is None:
-        status = extract_arg(message.text.replace('+', '%2B'))
-        bot.reply_to(message, 'https://www.pornhub.com/video/search?search=' + status)
+        status = extract_arg(message.text)
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(extract_string(message.text), url='https://www.pornhub.com/video/search?search=' + status ) )
+        bot.reply_to(message, 'Here is your ' + extract_string(message.text) , reply_markup = keyboard)
     elif not message.reply_to_message.text is None:
-        bot.reply_to(message.reply_to_message, 'https://www.pornhub.com/video/search?search=' + space_to_plus_sign(message.reply_to_message.text.replace('+', '%2B')))
-
-@bot.message_handler(commands=['google'])
-def google(message):
-    if message.reply_to_message is None:
-        status = extract_arg(message.text.replace('+', '%2B'))
-        bot.reply_to(message, 'https://www.google.com/search?q=' + status)
-    elif not message.reply_to_message.text is None:
-        bot.reply_to(message.reply_to_message, 'https://www.google.com/search?q=' + space_to_plus_sign(message.reply_to_message.text.replace('+', '%2B')))
-
-@bot.message_handler(commands=['wolframalpha', 'wa'])
-def wolframalpha(message):
-    if message.reply_to_message is None:
-        status = extract_arg(message.text.replace('+', '%2B'))
-        bot.reply_to(message, 'https://www.wolframalpha.com/input/?i=' + status)
-    elif not message.reply_to_message.text is None:
-        bot.reply_to(message.reply_to_message, 'https://www.wolframalpha.com/input/?i=' + space_to_plus_sign(message.reply_to_message.text.replace('+', '%2B')))
+        keyboard = types.InlineKeyboardMarkup()
+        keyboard.add(types.InlineKeyboardButton(message.reply_to_message.text, url='https://www.pornhub.com/video/search?search=' + extract_arg_2(message.reply_to_message.text) ) )
+        bot.reply_to(message, 'Here is your ' +  message.reply_to_message.text , reply_markup = keyboard)
 
 @bot.message_handler(commands=['kick'])
 def kick(message):
@@ -70,7 +64,8 @@ def delete(message):
 def now(message):
     bot.reply_to(message, strftime("%a, %d %b %Y %I:%M:%S %p %Z\n"))
 
-@bot.message_handler(func=lambda message: 'steal' in message.text.lower() , content_types=['text'])
+'''
+@bot.message_handler(func=lambda message: 'chem' in message.text , content_types=['text'])
 def steal(message):
     bot.reply_to(message, 'Steal practice huh')
 
@@ -91,7 +86,32 @@ def check_in_list(message):
 @bot.message_handler(func=check_in_list)
 def tagging_afk_name(message):
     bot.reply_to(message, 'He is steal practising!')
+'''
 
+@bot.message_handler(commands=['mute'])
+def mute(message):
+    if message.reply_to_message is not None and message.reply_to_message.from_user.id not in mute_id:
+        mute_id.append(message.reply_to_message.from_user.id)
+        bot.reply_to(message.reply_to_message, 'Muted')
+
+
+@bot.message_handler(func=lambda message: message.from_user.id in mute_id)
+def mute_message(message):
+    bot.delete_message(chat_id, message.message_id)
+
+@bot.message_handler(commands=['unmute'])
+def unmute(message):
+    if message.reply_to_message is not None and message.reply_to_message.from_user.id in mute_id:
+        mute_id.remove(message.reply_to_message.from_user.id)
+        bot.reply_to(message.reply_to_message, 'U can join now')
+'''
+@bot.message_handler(commands=['mute_list'])
+def mute_list(message):
+    if mute_id is not None:
+        bot.reply_to(message, mute_id)
+    else:
+        bot.reply_to(message, 'Null')
+'''
 while True:
     try:
         bot.polling()
