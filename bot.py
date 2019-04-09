@@ -1,5 +1,6 @@
 #https://youtu.be/jhFsFZXZbu4
 #https://github.com/eternnoir/pyTelegramBotAPI#message-handlers
+#https://www.mindk.com/blog/how-to-develop-a-chat-bot/
 import telebot
 from telebot import types
 from time import strftime
@@ -11,9 +12,12 @@ bot = telebot.TeleBot(token=bot_token)
 
 chat_id = '-352926939'
 
-#afk_name = []
+#afk_id = []
 
 mute_id = []
+
+def is_admin(id):
+    return (bot.get_chat_member(chat_id, id).status == 'administrator') or (bot.get_chat_member(chat_id, id).status == 'creator')
 
 @bot.message_handler(commands=['start'])
 def send(message):
@@ -42,23 +46,26 @@ def ph(message):
 
 @bot.message_handler(commands=['kick'])
 def kick(message):
-    bot.kick_chat_member(chat_id, message.reply_to_message.from_user.id)
+    if is_admin(message.from_user.id):
+        bot.kick_chat_member(chat_id, message.reply_to_message.from_user.id)
 
 @bot.message_handler(commands=['purge'])
 def purge(message):
-    if not message.reply_to_message is None:
-        for x in range(message.reply_to_message.message_id, message.message_id):
-            try:
-                bot.delete_message(chat_id, x)
-            except:
-                continue
-        bot.delete_message(chat_id, message.message_id)
+    if is_admin(message.from_user.id):
+        if not message.reply_to_message is None:
+            for x in range(message.reply_to_message.message_id, message.message_id):
+                try:
+                    bot.delete_message(chat_id, x)
+                except:
+                    continue
+            bot.delete_message(chat_id, message.message_id)
 
 @bot.message_handler(commands=['delete', 'del'])
 def delete(message):
-    if not message.reply_to_message is None:
-        bot.delete_message(chat_id, message.reply_to_message.message_id)
-        bot.delete_message(chat_id, message.message_id)
+    if is_admin(message.from_user.id):
+        if not message.reply_to_message is None:
+            bot.delete_message(chat_id, message.reply_to_message.message_id)
+            bot.delete_message(chat_id, message.message_id)
 
 @bot.message_handler(commands=['now'])
 def now(message):
@@ -69,30 +76,37 @@ def now(message):
 def steal(message):
     bot.reply_to(message, 'Steal practice huh')
 
-@bot.message_handler(func=lambda message: '@' + message.from_user.username in afk_name)
-def remove_afk(message):
-    bot.reply_to(message, 'No longer afk!')
-    afk_name.remove('@' + message.from_user.username)
-
 @bot.message_handler(commands=['afk'])
 def afk(message):
-    afk_name.append('@' + message.from_user.username)
-    bot.reply_to(message, message.from_user.username + ' started steal practising!')
+    afk_id.append(message.from_user.id)
+    bot.reply_to(message, bot.get_chat_member(chat_id, message.from_user.id).user.username + ' started steal practising!')
 
 def check_in_list(message):
-    m = [x for x in message.text.split() if '@' in x]
-    return ''.join(m) in afk_name
+    #m = [x for x in message.text.split() if '@' in x]
+    #return ''.join(m) in afk_name
+    if message.entities is not None:
+        for x in message.entities:
+            if x.type == 'mention' and '@' + x == bot.get_chat_member(chat_id, afk_id).user.username:
+                return True
+        #return message.entities[].user.id in afk_id
 
 @bot.message_handler(func=check_in_list)
 def tagging_afk_name(message):
     bot.reply_to(message, 'He is steal practising!')
+
+@bot.message_handler(func=lambda message: message.from_user.id in afk_id)
+def remove_afk(message):
+    bot.reply_to(message, 'No longer afk!')
+    afk_id.remove(message.from_user.id)
 '''
 
+# mute
 @bot.message_handler(commands=['mute'])
 def mute(message):
-    if message.reply_to_message is not None and message.reply_to_message.from_user.id not in mute_id:
-        mute_id.append(message.reply_to_message.from_user.id)
-        bot.reply_to(message.reply_to_message, 'Muted')
+    if is_admin(message.from_user.id):
+        if message.reply_to_message is not None and message.reply_to_message.from_user.id not in mute_id:
+            mute_id.append(message.reply_to_message.from_user.id)
+            bot.reply_to(message.reply_to_message, 'Muted')
 
 
 @bot.message_handler(func=lambda message: message.from_user.id in mute_id)
@@ -101,9 +115,10 @@ def mute_message(message):
 
 @bot.message_handler(commands=['unmute'])
 def unmute(message):
-    if message.reply_to_message is not None and message.reply_to_message.from_user.id in mute_id:
-        mute_id.remove(message.reply_to_message.from_user.id)
-        bot.reply_to(message.reply_to_message, 'U can join now')
+    if is_admin(message.from_user.id):
+        if message.reply_to_message is not None and message.reply_to_message.from_user.id in mute_id:
+            mute_id.remove(message.reply_to_message.from_user.id)
+            bot.reply_to(message.reply_to_message, 'U can join now')
 '''
 @bot.message_handler(commands=['mute_list'])
 def mute_list(message):
