@@ -14,7 +14,7 @@ bot_token = ''
 
 bot = telebot.TeleBot(token=bot_token)
 
-chat_id = '-1001356677647'
+chat_id = ''
 
 #afk_list = []
 
