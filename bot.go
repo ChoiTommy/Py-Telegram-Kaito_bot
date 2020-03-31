@@ -3,13 +3,22 @@ package main
  * Source: https://github.com/go-telegram-bot-api/telegram-bot-api
  */
 import (
+	"io/ioutil"
 	"log"
 	"strings"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
+func getKey(path string) string {
+		key, err := ioutil.ReadFile(path)
+		if err != nil {
+			log.Panicf("failed reading data from file: %s", err)
+		}
+		return string(key)
+}
+
 func main() {
-	bot, err := tgbotapi.NewBotAPI("")
+	bot, err := tgbotapi.NewBotAPI(getKey("key.txt"))
 	if err != nil {
 		log.Panic(err)
 	}
