@@ -33,7 +33,6 @@ func getKey(path string) string {
 		return string(key)
 }
 
-
 func main() {
 	bot, err := tgbotapi.NewBotAPI(getKey(FILE_PATH))
 	if err != nil {
@@ -61,7 +60,7 @@ func main() {
     log.Printf("[%s] %s: %s", update.Message.From.UserName, update.Message.From.FirstName + update.Message.From.LastName, update.Message.Text)
 
     if (strings.ToUpper(update.Message.Text) == (COMMAND + ANSWER)) {
-      text := QUESTION + REPLY_TEXT + update.Message.From.FirstName
+      text := QUESTION + REPLY_TEXT + update.Message.From.FirstName + update.Message.From.LastName
       msg := tgbotapi.NewEditMessageText(message.Chat.ID, message.MessageID, text)
       msg.ParseMode = tgbotapi.ModeHTML
       msg.DisableWebPagePreview = true
@@ -72,11 +71,11 @@ func main() {
       bot.Send(msgReply)
       break
 
-  } else if strings.Contains(strings.ToUpper(update.Message.Text), COMMAND) {
-    msgReply := tgbotapi.NewMessage(update.Message.Chat.ID, "WRong dude")
-    msgReply.ReplyToMessageID = update.Message.MessageID
-    bot.Send(msgReply)
-  }
+	  } else if strings.Contains(strings.ToUpper(update.Message.Text), COMMAND) {
+	    msgReply := tgbotapi.NewMessage(update.Message.Chat.ID, "WRong dude")
+	    msgReply.ReplyToMessageID = update.Message.MessageID
+	    bot.Send(msgReply)
+	  }
 }
   log.Printf("Program end.")
 }
