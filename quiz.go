@@ -8,22 +8,25 @@ import (
 const CHANNEL_NAME = "@system_logs"
 const FILE_PATH = "key.txt"
 const QUESTION = `
-<b>REVISION QUIZ</b>
+<b>Challenge</b>
 <i>Be the first one to answer this!</i>
-#chem #industrial_chem #catalyst
-What is the catalyst of Contact process?
-A. Pt
-B. NiO
-C. ZnO
-D. V2O5
+#phys
+Find the required current in A.
 `
-const INSTRUCTION = "Type your answer using the command <code>/ans [A/B/C/D]</code> in any group with @kaito_bot or dm her. GOGOGO!"
+const INSTRUCTION = "Type your answer using the command <code>/ans [your answer with unit]</code> in any group with @kaito_bot or dm her. GOGOGO!"
 
-const ANSWER = "D"
+const ANSWER = "4.8A"
 const REPLY_TEXT = `
-Answer: Check notes yourselves
-Stealing champion: ` //<a href='https://t.me/system_logs/396'>Check here!</a>
+Answer(also source): <a href="https://youtu.be/CL34g5J8A3g">Check here!</a>
+Stealing champion: `
 const COMMAND = "/ANS "
+const IMAGE_PATH = "image.png"
+
+var inlineButton = tgbotapi.NewInlineKeyboardMarkup(
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonURL("Give it a try","https://t.me/kaito_bot"),
+	),
+)
 
 func getKey(path string) string {
 		key, err := ioutil.ReadFile(path)
@@ -40,12 +43,15 @@ func main() {
 	}
 	//bot.Debug = true
 	log.Printf("Authorized on account @%s", bot.Self.UserName)
+	channelid := int64(-1001321795482);
 
-  msg := tgbotapi.NewMessageToChannel(CHANNEL_NAME, QUESTION + INSTRUCTION)
+	photo := tgbotapi.NewPhotoUpload(channelid, IMAGE_PATH)
+  photo.Caption = QUESTION + INSTRUCTION
   log.Printf("1")
-  msg.ParseMode = tgbotapi.ModeHTML
+  photo.ParseMode = tgbotapi.ModeHTML
+	photo.ReplyMarkup = inlineButton
   log.Printf("DOne")
-  message, err := bot.Send(msg)
+  message, err := bot.Send(photo)
   log.Printf("Sent")
 
   u := tgbotapi.NewUpdate(0)

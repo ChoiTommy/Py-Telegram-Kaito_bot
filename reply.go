@@ -1,19 +1,24 @@
 package main
+/*
+ * https://godoc.org/github.com/go-telegram-bot-api/telegram-bot-api
+ * https://stackoverflow.com/questions/49826038/how-to-add-variable-to-string-variable-in-golang
+ * https://gobyexample.com/random-numbers
+ */
 import (
 	"io/ioutil"
 	"log"
   "strings"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"math/rand"
+  "time"
+	"fmt"
 )
 const CHANNEL_NAME = "@system_logs"
 const FILE_PATH = "key.txt"
 const QUESTION = `
 <b>DISCUSSION</b>
-#phys #heat
-You are given a beaker of hot water, an electronic balance, a thermometer, a stirrer, a polystyrene cup and some crushed ice.
-Mass of the hot water is <i>mw</i> and the specific heat capacity of water is <i>c</i>.
-Describe an experiment to measure the specific latent heat of fusion of ice <i>lf</i>.
-States your assumptions and suggest 2 physical quantities to be measured and the equation involved.
+#chem #industrial_chem
+Using the Arrhenius equation, predict and explain whether the rate of forward or backward reactions of the Haber Process will increase to a greater extent when temperature is raised.
 
 `
 const INSTRUCTION = `Type your thoughts using the command
@@ -21,13 +26,13 @@ const INSTRUCTION = `Type your thoughts using the command
  Use nerdy HTML tags to format your answer.
  Maximum 10 answers will be saved.`
 const DIVIDE_LINE = `
---------------------
+------------------------------------
 Your brilliant ideas💡:
 `
 
 var inlineButton = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonURL("Join Discussion","https://t.me/kaito_bot"),
+		tgbotapi.NewInlineKeyboardButtonURL("Join discussion","https://t.me/kaito_bot"),
 	),
 )
 
@@ -61,6 +66,9 @@ func main() {
   counter := 0
   messageText = messageText + DIVIDE_LINE
 
+	s1 := rand.NewSource(time.Now().UnixNano())
+  r1 := rand.New(s1)
+
   for update := range updates {
     if update.Message == nil { // ignore any non-Message Updates
 			continue
@@ -83,10 +91,19 @@ func main() {
   	    msgReply.ReplyToMessageID = update.Message.MessageID
   	    bot.Send(msgReply)
 			default:
-        msgReply := tgbotapi.NewMessage(update.Message.Chat.ID, "Belo")
-  	    msgReply.ReplyToMessageID = update.Message.MessageID
-  	    bot.Send(msgReply)
+				msgReply := tgbotapi.NewMessage(update.Message.Chat.ID, "Belo")
+				msgReply.ReplyToMessageID = update.Message.MessageID
+				bot.Send(msgReply)
 			}
+		} else if bot.IsMessageToMe(*update.Message) {
+			file := r1.Intn(12) + 1
+			log.Printf("File: %d.webp", file)
+			path := fmt.Sprintf("stickers/%d.webp", file)
+			log.Printf(path)
+			msgReply := tgbotapi.NewDocumentUpload(update.Message.Chat.ID, path)
+			msgReply.ReplyToMessageID = update.Message.MessageID
+			bot.Send(msgReply)
+			log.Printf("Sticker %d sent", file)
 		}
     if counter > 9 {break}
   }
